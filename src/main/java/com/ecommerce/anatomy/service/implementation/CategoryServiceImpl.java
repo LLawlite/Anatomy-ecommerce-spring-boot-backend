@@ -1,10 +1,19 @@
 package com.ecommerce.anatomy.service.implementation;
 
+import com.ecommerce.anatomy.exceptions.APIException;
+import com.ecommerce.anatomy.exceptions.ResourceNotFoundException;
 import com.ecommerce.anatomy.model.Category;
+import com.ecommerce.anatomy.payload.CategoryDTO;
+import com.ecommerce.anatomy.payload.CategoryDTOResponse;
 import com.ecommerce.anatomy.repositories.CategoryRepository;
 import com.ecommerce.anatomy.service.interfaces.CategoryService;
 import jakarta.persistence.EntityNotFoundException;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,81 +30,91 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     // Get All the categories
     @Override
-    public List<Category> getAllCategories() {
-        try {
-            List<Category> categories = categoryRepository.findAll();
-            if (categories.isEmpty()) {
-                logger.info("No categories found in the database.");
-                throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No categories available.");
+    public CategoryDTOResponse getAllCategories(Integer pageNumber,Integer pageSize,String sortBy,String sortOrder) {
+
+        Sort sortByAndOrder=sortOrder.equalsIgnoreCase("asc") ?
+                Sort.by(sortBy).ascending():
+                Sort.by(sortBy).descending();
+
+            Pageable pageDetails= PageRequest.of(pageNumber,pageSize,sortByAndOrder);
+            Page<Category> categoryPage = categoryRepository.findAll(pageDetails);
+
+            List<Category> categories = categoryPage.getContent();
+            if(categories.isEmpty())
+            {
+                throw new APIException("No categories created yet.");
             }
-            return categories;
-        } catch (Exception ex) {
-            logger.error("Error retrieving categories: {}", ex.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to retrieve categories.");
-        }
+            List<CategoryDTO>categoryDTOS=categories.stream()
+                    .map(category->modelMapper.map(category,CategoryDTO.class))
+                    .toList();
+            CategoryDTOResponse categoryDTOResponse=new CategoryDTOResponse();
+            categoryDTOResponse.setContent(categoryDTOS);
+            categoryDTOResponse.setPageNumber(categoryPage.getNumber());
+            categoryDTOResponse.setPageSize(categoryPage.getSize());
+            categoryDTOResponse.setTotalElements(categoryPage.getTotalElements());
+            categoryDTOResponse.setTotalpages(categoryPage.getTotalPages());
+            categoryDTOResponse.setLastPage(categoryPage.isLast());
+
+            return categoryDTOResponse;
     }
 
     // Create a new category
     @Override
-    public void createCategory(Category category) {
-        try {
-            if (category.getCategoryName() == null || category.getCategoryName().isEmpty()) {
-                logger.warn("Attempt to create category with empty name.");
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category name must not be null or empty.");
+    public CategoryDTO createCategory(CategoryDTO categoryDTO) {
+
+            if (categoryDTO.getCategoryName() == null || categoryDTO.getCategoryName().isEmpty()) {
+                throw new APIException( "Category name must not be null or empty.");
             }
-            categoryRepository.save(category);
-            logger.info("Category created successfully with ID: {}", category.getCategoryId());
-        } catch (Exception ex) {
-            logger.error("Error creating category: {}", ex.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create category.");
-        }
+            Category savedCategoryDb=categoryRepository.findByCategoryName(categoryDTO.getCategoryName());
+            if(savedCategoryDb!=null){
+//                throw new ResponseStatusException(HttpStatus.CONFLICT, "Category with the same name already exists.");
+                throw new APIException( "Category with the same name already exists.");
+            }
+            Category category = modelMapper.map(categoryDTO, Category.class);
+            Category savedCategory=categoryRepository.save(category);
+            CategoryDTO savedCategoryDTO=modelMapper.map(savedCategory, CategoryDTO.class);
+
+            return savedCategoryDTO ;
+
+
     }
 
     // Delete a category
     @Override
-    public String deleteCategory(Long categoryId) {
-        try {
-            if (!categoryRepository.existsById(categoryId)) {
-                logger.warn("Category with ID: {} not found for deletion.", categoryId);
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found.");
-            }
+    public CategoryDTO deleteCategory(Long categoryId) {
+            Category category=categoryRepository.findById(categoryId)
+                            .orElseThrow(()-> new ResourceNotFoundException("Category","categoryId",categoryId));
             categoryRepository.deleteById(categoryId);
-            logger.info("Category with ID: {} deleted successfully.", categoryId);
-            return "Category with categoryId: " + categoryId + " deleted successfully !!";
-        } catch (ResponseStatusException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            logger.error("Error deleting category: {}", ex.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to delete category.");
-        }
+            CategoryDTO deleteCategory=modelMapper.map(category,CategoryDTO.class);
+            return deleteCategory;
+
+
     }
 
     // Update a category
     @Override
-    public Category updateCategory(Category updatedCategory, Long categoryId) {
-        try {
-            if (updatedCategory == null || updatedCategory.getCategoryName() == null || updatedCategory.getCategoryName().isEmpty()) {
-                logger.warn("Invalid category details provided for update.");
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category details must not be null or empty.");
+    public CategoryDTO updateCategory(CategoryDTO updatedCategoryDTO, Long categoryId) {
+
+            if (updatedCategoryDTO == null || updatedCategoryDTO.getCategoryName() == null || updatedCategoryDTO.getCategoryName().isEmpty()) {
+                throw new APIException( "Category details must not be null or empty.");
             }
+
 
             Category category = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> {
-                        logger.warn("Category with ID: {} not found for update.", categoryId);
-                        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found.");
+                        return new ResourceNotFoundException("Category","categoryId",categoryId);
                     });
 
-            category.setCategoryName(updatedCategory.getCategoryName());
+            category.setCategoryName(updatedCategoryDTO.getCategoryName());
             Category savedCategory = categoryRepository.save(category);
-            logger.info("Category with ID: {} updated successfully.", categoryId);
-            return savedCategory;
-        } catch (ResponseStatusException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            logger.error("Error updating category: {}", ex.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to update category.");
-        }
+
+            CategoryDTO savedCategoryDTO=modelMapper.map(savedCategory,CategoryDTO.class);
+            return savedCategoryDTO;
+
     }
 }
