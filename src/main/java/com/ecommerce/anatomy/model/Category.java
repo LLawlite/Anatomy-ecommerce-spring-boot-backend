@@ -1,14 +1,12 @@
 package com.ecommerce.anatomy.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
+
+import java.util.List;
+
 
 @Entity(name = "category")
 @Data
@@ -23,12 +21,15 @@ public class Category {
     @Size(min=5,message="Category name must contain atleast 5 characters")
     private String categoryName;
 
-    public String getCategoryName() {
-        return categoryName;
+    @OneToMany(mappedBy = "category",cascade = CascadeType.ALL)
+    private List<Product> products;
+
+    public List<Product> getProducts() {
+        return products;
     }
 
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 
     public Long getCategoryId() {
@@ -37,5 +38,13 @@ public class Category {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public @NotBlank(message = "Category name cannot be blank") @Size(min = 5, message = "Category name must contain atleast 5 characters") String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(@NotBlank(message = "Category name cannot be blank") @Size(min = 5, message = "Category name must contain atleast 5 characters") String categoryName) {
+        this.categoryName = categoryName;
     }
 }

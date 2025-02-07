@@ -1,7 +1,7 @@
 package com.ecommerce.anatomy.controller;
 import com.ecommerce.anatomy.config.AppConsts;
-import com.ecommerce.anatomy.payload.CategoryDTO;
-import com.ecommerce.anatomy.payload.CategoryDTOResponse;
+import com.ecommerce.anatomy.payload.DTO.CategoryDTO;
+import com.ecommerce.anatomy.payload.Response.CategoryDTOResponse;
 import com.ecommerce.anatomy.service.interfaces.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,5 +57,7 @@ public class CategoryController {
             return new ResponseEntity<>(savedCategoryDTO, HttpStatus.OK);
 
     }
+
+
 }
 

@@ -1,11 +1,7 @@
 package com.ecommerce.anatomy.service.interfaces;
 
-import com.ecommerce.anatomy.model.Category;
-import com.ecommerce.anatomy.payload.CategoryDTO;
-import com.ecommerce.anatomy.payload.CategoryDTOResponse;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
+import com.ecommerce.anatomy.payload.DTO.CategoryDTO;
+import com.ecommerce.anatomy.payload.Response.CategoryDTOResponse;
 
 public interface CategoryService {
     CategoryDTOResponse getAllCategories(Integer pageNumber,Integer pageSize,String sortBy,String sortOrder);

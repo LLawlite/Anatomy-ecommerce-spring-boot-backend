@@ -1,6 +1,6 @@
 package com.ecommerce.anatomy.exceptions;
 
-import com.ecommerce.anatomy.payload.APIResponse;
+import com.ecommerce.anatomy.payload.Response.APIResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;

@@ -1,5 +1,6 @@
-package com.ecommerce.anatomy.payload;
+package com.ecommerce.anatomy.payload.Response;
 
+import com.ecommerce.anatomy.payload.DTO.CategoryDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,8 @@ public class CategoryDTOResponse {
     private Integer pageNumber;
     private Integer pageSize;
     private Long totalElements;
+    private Integer totalpages;
+    private boolean lastPage;
 
     public boolean isLastPage() {
         return lastPage;
@@ -63,6 +66,5 @@ public class CategoryDTOResponse {
         this.content = content;
     }
 
-    private Integer totalpages;
-    private boolean lastPage;
+
 }

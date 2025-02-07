@@ -1,6 +1,5 @@
-package com.ecommerce.anatomy.payload;
+package com.ecommerce.anatomy.payload.Response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

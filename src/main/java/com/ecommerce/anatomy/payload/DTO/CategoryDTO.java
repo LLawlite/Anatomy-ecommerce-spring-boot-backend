@@ -1,4 +1,4 @@
-package com.ecommerce.anatomy.payload;
+package com.ecommerce.anatomy.payload.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
