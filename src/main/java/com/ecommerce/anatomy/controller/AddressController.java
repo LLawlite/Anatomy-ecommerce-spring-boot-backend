@@ -44,4 +44,28 @@ public class AddressController {
         AddressDTO addressDTO = addressService.getAddressesById(addressId);
         return new ResponseEntity<>(addressDTO, HttpStatus.OK);
     }
+
+    @GetMapping("/public/user/address")
+    public ResponseEntity<List<AddressDTO>>getUserAddresses()
+    {
+        User user=authUtil.loggedInUser();
+        List<AddressDTO> addresses=addressService.getUserAddresses(user);
+        return new ResponseEntity<>(addresses, HttpStatus.OK);
+    }
+
+    @PutMapping("/public/address/{addressId}")
+    public ResponseEntity<AddressDTO>updateAddressById(@PathVariable Long addressId,@Valid @RequestBody AddressDTO addressDTO)
+    {
+
+       AddressDTO updatedAddressDTO=addressService.updateAddressById(addressId,addressDTO);
+        return new ResponseEntity<>(updatedAddressDTO, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/public/address/{addressId}")
+    public ResponseEntity<String>deleteAddressById(@PathVariable Long addressId)
+    {
+
+        String msg=addressService.deleteAddressById(addressId);
+        return new ResponseEntity<>(msg, HttpStatus.OK);
+    }
 }
