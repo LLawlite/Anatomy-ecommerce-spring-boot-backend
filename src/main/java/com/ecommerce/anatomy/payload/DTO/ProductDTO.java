@@ -16,6 +16,15 @@ public class ProductDTO {
     private double discount;
     private double specialPrice;
     private String description;
+    private String secondaryImage;
+
+    public String getSecondaryImage() {
+        return secondaryImage;
+    }
+
+    public void setSecondaryImage(String secondaryImage) {
+        this.secondaryImage = secondaryImage;
+    }
 
     public Long getProductId() {
         return productId;

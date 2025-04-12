@@ -11,6 +11,11 @@ import com.ecommerce.anatomy.security.request.SignupRequest;
 import com.ecommerce.anatomy.security.response.MessageResponse;
 import com.ecommerce.anatomy.security.response.UserInfoResponse;
 import com.ecommerce.anatomy.security.services.UserDetailsImpl;
+import com.ecommerce.anatomy.service.interfaces.OtpService;
+import com.ecommerce.anatomy.payload.DTO.OtpRequestDTO;
+import com.ecommerce.anatomy.payload.DTO.OtpVerifyDto;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -44,7 +49,14 @@ public class AuthController {
     RoleRepository roleRepository;
 
     @Autowired
+    private OtpService otpService;
+
+    @Autowired
     PasswordEncoder encoder;
+
+    @Autowired
+    private EntityManager entityManager;
+
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
@@ -80,16 +92,16 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        try{
-            User temp=userRepository.findByUserName(signUpRequest.getUsername())
-                    .orElseThrow(()->new RuntimeException("Could not find fblal"));
-        }catch (Exception e)
-        {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+//        try{
+//            User temp=userRepository.findByUserName(signUpRequest.getUsername())
+//                    .orElseThrow(()->new RuntimeException("Could not find fblal"));
+//        }catch (Exception e)
+//        {
+//            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+//        }
 
-        User temp=userRepository.findByUserName(signUpRequest.getUsername())
-                .orElseThrow(()->new RuntimeException("Could not find fblal"));
+//        User temp=userRepository.findByUserName(signUpRequest.getUsername())
+//                .orElseThrow(()->new RuntimeException("Could not find fblal"));
 
 
         if (userRepository.existsByUserName(signUpRequest.getUsername())) {
@@ -171,4 +183,53 @@ public class AuthController {
                         cookie.toString())
                 .body(new MessageResponse("You've been signed out!"));
     }
+
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<String> sendOtp(@Valid @RequestBody OtpRequestDTO dto) {
+        String mobile = dto.getMobile();
+
+
+
+        otpService.generateAndSendOtp(mobile);
+        return ResponseEntity.ok("OTP sent successfully");
+    }
+
+    @PostMapping("/verify-otp")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> verifyOtp(@Valid @RequestBody OtpVerifyDto dto) {
+        String mobile = dto.getMobile();
+
+        String otp = dto.getOtp();
+
+
+        if (!otpService.verifyOtp(mobile, otp)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid OTP"));
+        }
+
+        User user = userRepository.findByMobile(mobile);
+        if (user == null) {
+            user = new User();
+            user.setMobile(mobile);
+            //Getting role form database
+            Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
+                    .orElseThrow(() -> new RuntimeException("Role USER not found."));
+            userRole = entityManager.merge(userRole); // Merges the role into the current session
+            user.addRole(userRole);
+
+            user = userRepository.save(user);
+        }
+
+        otpService.clearOtp(mobile);
+        String jwt = jwtUtils.generateTokenFromMobile(user.getMobile());
+
+        return ResponseEntity.ok(Map.of(
+                "jwtToken", jwt,
+                "userId", user.getUserId(),
+                "mobile", user.getMobile(),
+                "roles",user.getRoles()
+        ));
+    }
+
+
 }

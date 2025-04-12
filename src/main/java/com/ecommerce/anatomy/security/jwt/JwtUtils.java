@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.WebUtils;
 
 import javax.crypto.SecretKey;
+import javax.swing.plaf.synth.Region;
 import java.security.Key;
 import java.util.Date;
 
@@ -25,7 +26,7 @@ public class JwtUtils {
     @Value("${spring.app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${spring.app.jwtExpirationMs}")
+    @Value("${spring.app.jwtExpirationMs}0")
     private int jwtExpirationMs;
 
     @Value("${spring.ecom.app.jwtCookieName}")
@@ -64,6 +65,15 @@ public class JwtUtils {
                 .signWith(key())
                 .compact();
     }
+    public String generateTokenFromEmail(String email) {
+
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key())
+                .compact();
+    }
 
     public String getUserNameFromJwtToken(String token) {
         return Jwts.parser()
@@ -71,6 +81,30 @@ public class JwtUtils {
                 .build().parseSignedClaims(token)
                 .getPayload().getSubject();
     }
+    public String getEmailFromJwtToken(String token) {
+        return Jwts.parser()
+                .verifyWith((SecretKey) key())
+                .build().parseSignedClaims(token)
+                .getPayload().getSubject();
+    }
+
+    public String generateTokenFromMobile(String mobile) {
+
+        return Jwts.builder()
+                .subject(mobile)
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key())
+                .compact();
+    }
+
+    public String getMobileFromJwtToken(String token) {
+        return Jwts.parser()
+                .verifyWith((SecretKey) key())
+                .build().parseSignedClaims(token)
+                .getPayload().getSubject();
+    }
+
 
     private Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));

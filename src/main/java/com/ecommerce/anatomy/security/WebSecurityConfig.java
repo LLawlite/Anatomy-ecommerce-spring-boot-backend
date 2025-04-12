@@ -1,5 +1,7 @@
 package com.ecommerce.anatomy.security;
 
+import com.ecommerce.anatomy.security.oauth2.CustomOAuth2UserService;
+import com.ecommerce.anatomy.security.oauth2.OAuth2SuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +33,12 @@ public class WebSecurityConfig {
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
+
+    @Autowired
+    private CustomOAuth2UserService oAuth2UserService;
+
+    @Autowired
+    private OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -67,16 +75,16 @@ public class WebSecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-//                                    auth.anyRequest().permitAll()
-                                auth.requestMatchers("/api/auth/**").permitAll()
-//                                .requestMatchers("/v3/api-docs/**").permitAll()
-//                                .requestMatchers("/api/admin/**").permitAll()
-//                                .requestMatchers("/api/public/**").permitAll()
-//                                .requestMatchers("/swagger-ui/**").permitAll()
-//                                .requestMatchers("/api/test/**").permitAll()
-//                                .requestMatchers("/images/**").permitAll()
-                                .anyRequest().authenticated()
-                );
+                                auth.requestMatchers("/api/public/**").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
+                                        .anyRequest().authenticated()
+//                                        .anyRequest().permitAll()
+                )
+                .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler)
+                )
+        ;
 
         http.authenticationProvider(authenticationProvider());
 

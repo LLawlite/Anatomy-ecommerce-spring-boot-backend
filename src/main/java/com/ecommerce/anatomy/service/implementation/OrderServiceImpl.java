@@ -94,6 +94,7 @@ public class OrderServiceImpl implements OrderService {
 
             // Reduce stock quantity
             product.setQuantity(product.getQuantity() - quantity);
+            product.setSaleCount(product.getSaleCount()+quantity);
 
             // Save product back to the database
             productRepository.save(product);

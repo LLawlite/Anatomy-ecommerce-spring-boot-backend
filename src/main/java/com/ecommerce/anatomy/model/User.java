@@ -3,6 +3,7 @@ package com.ecommerce.anatomy.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,27 +28,34 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @NotBlank
+//    @NotBlank
     @Size(max = 20)
     @Column(name="username")
     private String userName;
 
-    @NotBlank
+//    @NotBlank
     @Size(max = 50)
     @Column(name="email")
     @Email
     private String email;
 
-    @NotBlank
-    @Size(max = 120)
+
+
     @Column(name="password")
     private String password;
 
-    @ManyToMany(cascade={CascadeType.PERSIST,CascadeType.MERGE},fetch = FetchType.EAGER)
-    @JoinTable(name="user_role",
-    joinColumns = @JoinColumn(name = "user_id"),
-    inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
     private Set<Role> roles = new HashSet<>();
+
+    // Helper
+    public void addRole(Role role) {
+        this.roles.add(role); // DO NOT touch role.getUsers() to avoid lazy issues
+    }
 
     @ToString.Exclude
     @OneToMany(mappedBy="user",
@@ -67,6 +75,18 @@ public class User {
     @OneToOne(mappedBy = "user",cascade = {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.REMOVE},orphanRemoval = true)
     private Cart cart;
 
+    @Column(unique = true, nullable = false)
+    @Pattern(regexp = "\\d{10}", message = "Mobile number must be 10 digits")
+    private String mobile;
+
+
+    public @Pattern(regexp = "\\d{10}", message = "Mobile number must be 10 digits") String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(@Pattern(regexp = "\\d{10}", message = "Mobile number must be 10 digits") String mobile) {
+        this.mobile = mobile;
+    }
 
     public User(){}
 
@@ -78,7 +98,7 @@ public class User {
         this.userId = userId;
     }
 
-    public @NotBlank @Size(max = 20) String getUserName() {
+    public  @Size(max = 20) String getUserName() {
         return userName;
     }
 
@@ -86,7 +106,7 @@ public class User {
         this.userName = userName;
     }
 
-    public @NotBlank @Size(max = 50) @Email String getEmail() {
+    public  @Size(max = 50) @Email String getEmail() {
         return email;
     }
 
@@ -94,11 +114,11 @@ public class User {
         this.email = email;
     }
 
-    public @NotBlank @Size(max = 120) String getPassword() {
+    public  String getPassword() {
         return password;
     }
 
-    public void setPassword(@NotBlank @Size(max = 120) String password) {
+    public void setPassword( @Size(max = 120) String password) {
         this.password = password;
     }
 
@@ -131,4 +151,7 @@ public class User {
     public void setAddresses(List<Address> addresses) {
         this.addresses = addresses;
     }
+
+
 }
+

@@ -240,7 +240,7 @@ public class ProductServiceImpl implements ProductService {
 
 
             Product product = modelMapper.map(productDTO, Product.class);
-            product.setImage("default.png");
+//            product.setImage("default.png");
             product.setCategory(category);
             double specialPrice = product.getPrice() - ((product.getDiscount() * .01) * product.getPrice());
             product.setSpecialPrice(specialPrice);
@@ -274,6 +274,28 @@ public class ProductServiceImpl implements ProductService {
 
         // return DTO after mapping product to DTO
         return modelMapper.map(updatedProduct, ProductDTO.class);
+    }
+
+    @Override
+    public ProductResponse getBestSellers() {
+        List<Product>products=productRepository.findTop3BestSellers();
+        if(products.isEmpty())
+        {
+            throw new APIException("No products found");
+        }
+
+        List<ProductDTO>productDTOS=products.stream()
+                .map(product->modelMapper.map(product,ProductDTO.class))
+                .toList();
+
+        ProductResponse productResponse=new ProductResponse();
+        productResponse.setContent(productDTOS);
+        productResponse.setPageNumber(0);
+        productResponse.setPageSize(3);
+        productResponse.setTotalpages(1);
+
+
+        return productResponse;
     }
 
 

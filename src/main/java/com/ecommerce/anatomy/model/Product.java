@@ -44,6 +44,33 @@ public class Product {
     @OneToMany(mappedBy = "product",cascade = {CascadeType.PERSIST,CascadeType.MERGE},fetch=FetchType.EAGER)
     private List<CartItem> products=new ArrayList<CartItem>();
 
+    @Column(nullable = false)
+    private int saleCount = 0; // Default value in Java
+
+    private String secondaryImage;
+
+    public String getSecondaryImage() {
+        return secondaryImage;
+    }
+
+    public void setSecondaryImage(String secondaryImage) {
+        this.secondaryImage = secondaryImage;
+    }
+
+    public int getSaleCount() {
+        return saleCount;
+    }
+
+    public void setSaleCount(int saleCount) {
+        this.saleCount = saleCount;
+    }
+
+
+
+
+
+
+
 
     public String getImage() {
         return image;

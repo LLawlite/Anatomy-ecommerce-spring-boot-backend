@@ -1,30 +1,22 @@
 package com.ecommerce.anatomy.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Entity
-
 @Data
+@NoArgsConstructor
 @Table(name = "roles")
 public class Role {
-    public Role(){}
-    public Role(Integer roleId, AppRole roleName) {
-        this.roleId = roleId;
-        this.roleName = roleName;
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
     private Integer roleId;
 
-    @ToString.Exclude
     @Enumerated(EnumType.STRING)
-    @Column(length = 20, name = "role_name")
+    @Column(length = 20, name = "role_name", unique = true, nullable = false)
     private AppRole roleName;
 
     public Role(AppRole roleName) {
@@ -47,5 +39,8 @@ public class Role {
         this.roleName = roleName;
     }
 
-
+    public Role(){}
+    public Role(Integer roleId) {
+        this.roleId = roleId;
+    }
 }

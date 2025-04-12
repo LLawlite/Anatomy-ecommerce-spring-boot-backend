@@ -17,12 +17,14 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api")
+//@CrossOrigin(origins = "http://localhost:3000")
+
 public class ProductController {
 
     @Autowired
     private ProductService productService;
 
-    @GetMapping("/public/products")
+    @GetMapping("/public/products/")
     //@RequestMapping(value = "/public/categories", method = RequestMethod.GET)
     public ResponseEntity<ProductResponse> getAllProducts(
             @RequestParam(name="pageNumber",defaultValue = AppConsts.PAGE_NUMBER,required = false) Integer pageNumber,
@@ -90,6 +92,12 @@ public class ProductController {
     public ResponseEntity<ProductDTO> updateProductImage(@PathVariable Long productId, @RequestParam("image") MultipartFile image)throws IOException {
         ProductDTO updatedProductDTO = productService.updateProductImage(productId, image);
         return new ResponseEntity<>(updatedProductDTO, HttpStatus.OK);
+    }
+
+    @GetMapping("/public/products/bestsellers")
+    public ResponseEntity<ProductResponse> getBestSellers(){
+        ProductResponse productResponse = productService.getBestSellers();
+        return new ResponseEntity<>(productResponse, HttpStatus.OK);
     }
 
 }

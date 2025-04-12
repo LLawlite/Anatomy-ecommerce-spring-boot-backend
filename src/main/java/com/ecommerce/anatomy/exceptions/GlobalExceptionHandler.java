@@ -1,6 +1,8 @@
 package com.ecommerce.anatomy.exceptions;
 
 import com.ecommerce.anatomy.payload.Response.APIResponse;
+import com.ecommerce.anatomy.payload.Response.OtpVerificationResponse;
+import com.twilio.http.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -38,5 +40,13 @@ public class GlobalExceptionHandler {
         String message=e.getMessage();
         APIResponse apiResponse=new APIResponse(message,false);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(OtpVerificationException.class)
+    public ResponseEntity<OtpVerificationResponse> myOtpVerificationException(OtpVerificationException e)
+    {
+        String message=e.getMessage();
+        OtpVerificationResponse otpVerificationResponse=new OtpVerificationResponse(message,false);
+        return new ResponseEntity<>(otpVerificationResponse,HttpStatus.BAD_REQUEST);
     }
 }
